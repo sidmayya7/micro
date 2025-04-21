@@ -110,6 +110,15 @@ services:
     networks:
       - hotel-network
 
+  loyalty-service:
+    build:
+      context: ./loyalty
+      dockerfile: Dockerfile
+    ports:
+      - "8004:8004"
+    networks:
+      - hotel-network
+
 networks:
   hotel-network:
     driver: bridge

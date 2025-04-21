@@ -113,6 +113,55 @@
             transform: translateY(0);
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
+
+        .loyalty-section {
+            margin: 20px 0;
+            padding: 20px;
+            background: #fef8e6;
+            border-radius: 10px;
+            border-left: 4px solid #f9d98e;
+        }
+
+        .loyalty-section h3 {
+            color: #4a2e4a;
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+        }
+
+        .loyalty-points {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 10px 0;
+        }
+
+        .loyalty-input {
+            width: 100px;
+            padding: 8px;
+            border: 1px solid #f0e0e8;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+
+        .apply-points-btn {
+            background: #f9d98e;
+            color: #5c4033;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .apply-points-btn:hover {
+            background: #e6c77d;
+        }
+
+        .points-info {
+            color: #7a6a7a;
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -121,14 +170,42 @@
         <div class="booking-details" id="bookingDetails">
             <!-- Booking details will be inserted here -->
         </div>
+
+        <div class="loyalty-section">
+            <h3>Loyalty Points</h3>
+            <div class="loyalty-points">
+                <div>
+                    <span>Available Points: </span>
+                    <span id="availablePoints">Loading...</span>
+                </div>
+                <div>
+                    <input type="number" id="pointsToUse" class="loyalty-input" placeholder="Points to use" min="0">
+                    <button class="apply-points-btn" onclick="applyLoyaltyPoints()">Apply Points</button>
+                </div>
+            </div>
+            <p class="points-info">100 points = $10 discount</p>
+        </div>
+
+        <div class="booking-details" id="discountDetails" style="display: none;">
+            <h3>Discount Applied</h3>
+            <p>Points Used: <span id="usedPoints">0</span></p>
+            <p>Discount Amount: $<span id="discountAmount">0</span></p>
+            <p>Final Amount: $<span id="finalAmount">0</span></p>
+        </div>
+
         <button class="pay-button" onclick="processPayment()">Pay Now</button>
     </div>
 
     <script>
+        let originalPrice = 0;
+        let discountAmount = 0;
+        let pointsUsed = 0;
+
         // Get booking details from URL parameters
         const urlParams = new URLSearchParams(window.location.search);
         const bookingDetails = JSON.parse(decodeURIComponent(urlParams.get('booking')));
-        
+        originalPrice = bookingDetails.price;
+
         // Display booking details
         document.getElementById('bookingDetails').innerHTML = `
             <h3>Booking Summary</h3>
@@ -140,6 +217,62 @@
             <p>Number of People: ${bookingDetails.people}</p>
             <p><strong>Total Amount: $${bookingDetails.price}</strong></p>
         `;
+
+        // Load available points
+        async function loadAvailablePoints() {
+            try {
+                const response = await fetch('http://localhost:8004/api/wallet/1'); // Using user_id 1 for global wallet
+                if (!response.ok) throw new Error('Failed to load points');
+                const data = await response.json();
+                document.getElementById('availablePoints').textContent = data.points;
+            } catch (error) {
+                console.error('Error loading points:', error);
+                document.getElementById('availablePoints').textContent = 'Error loading points';
+            }
+        }
+
+        // Apply loyalty points
+        async function applyLoyaltyPoints() {
+            const pointsToUse = parseInt(document.getElementById('pointsToUse').value);
+            if (!pointsToUse || pointsToUse <= 0) {
+                alert('Please enter a valid number of points');
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:8004/api/wallet/1/use', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        points: pointsToUse
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Failed to apply points');
+                }
+
+                const result = await response.json();
+                pointsUsed = pointsToUse;
+                discountAmount = result.money;
+                
+                // Update UI
+                document.getElementById('usedPoints').textContent = pointsUsed;
+                document.getElementById('discountAmount').textContent = discountAmount.toFixed(2);
+                document.getElementById('finalAmount').textContent = (originalPrice - discountAmount).toFixed(2);
+                document.getElementById('discountDetails').style.display = 'block';
+                
+                // Update booking price
+                bookingDetails.price = originalPrice - discountAmount;
+                
+            } catch (error) {
+                console.error('Error applying points:', error);
+                alert('Error applying points: ' + error.message);
+            }
+        }
 
         async function processPayment() {
             try {
@@ -160,6 +293,26 @@
 
                 const result = await response.json();
                 
+                // Add points after successful payment
+                if (bookingDetails.price > 0) { // Only add points if there was an actual payment
+                    const addPointsResponse = await fetch('http://localhost:8004/api/wallet/1/add', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            payment_amount: parseFloat(bookingDetails.price)
+                        })
+                    });
+
+                    if (!addPointsResponse.ok) {
+                        throw new Error('Failed to add points');
+                    }
+
+                    // Refresh available points display
+                    await loadAvailablePoints();
+                }
+
                 // Send successful payment back to booking service
                 const bookingResponse = await fetch('http://localhost:8002/bookings', {
                     method: 'POST',
@@ -185,6 +338,9 @@
                 alert('Payment failed: ' + error.message);
             }
         }
+
+        // Load available points when page loads
+        loadAvailablePoints();
     </script>
 </body>
 </html>
