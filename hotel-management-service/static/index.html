@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Hotel Management System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f791b8 0%, #ff9f6d 50%, #f9d98e 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* View Toggle Buttons */
+        button {
+            padding: 12px 24px;
+            margin: 5px;
+            border: none;
+            border-radius: 25px;
+            background: #5c4033;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        button:hover {
+            background: #f791b8;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        /* View Management */
+        .view {
+            display: none;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Headings */
+        h2 {
+            color: #5c4033;
+            margin: 20px 0;
+            font-size: 2rem;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            position: relative;
+        }
+
+        h2::after {
+            content: '';
+            width: 60px;
+            height: 3px;
+            background: #ff9f6d;
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        /* Hotel Card */
+        .hotel-card {
+            background: white;
+            border-radius: 15px;
+            margin: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .hotel-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .hotel-card h3 {
+            color: #2c3e50;
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .hotel-card p {
+            color: #7f6a5e;
+            line-height: 1.6;
+        }
+
+        /* Search Container */
+        .search-container {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px auto;
+            max-width: 600px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .search-container input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #f0e0e8;
+            border-radius: 25px;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-container input:focus {
+            border-color: #f791b8;
+            box-shadow: 0 0 5px rgba(247, 145, 184, 0.3);
+        }
+
+        /* Admin Form */
+        .admin-form {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 20px auto;
+            max-width: 600px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .admin-form input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #f0e0e8;
+            border-radius: 25px;
+            outline: none;
+        }
+
+        .admin-form input:focus {
+            border-color: #f791b8;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(92, 64, 51, 0.7);
+            z-index: 1000;
+            overflow: auto;
+        }
+
+        .modal-content {
+            background: white;
+            margin: 5% auto;
+            padding: 30px;
+            width: 90%;
+            max-width: 700px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            position: relative;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(-100px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 28px;
+            color: #2c3e50;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close:hover {
+            color: #ff9f6d;
+        }
+
+        /* Room Availability Form */
+        .room-availability-form {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .room-availability-form input {
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #f0e0e8;
+            border-radius: 25px;
+            width: 100%;
+        }
+
+        /* Room Management */
+        .room-management {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 15px;
+        }
+
+        .room-details {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Availability Calendar */
+        .availability-calendar {
+            padding: 12px;
+            border-radius: 8px;
+            margin: 8px 0;
+        }
+
+        .availability-calendar.available {
+            background: #fef8e6;
+            border-left: 4px solid #f9d98e;
+        }
+
+        .availability-calendar.booked {
+            background: #fff5f8;
+            border-left: 4px solid #ff9f6d;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            background: #f0e0e8;
+            border-radius: 25px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 20px;
+            background: linear-gradient(to right, #f791b8, #ff9f6d);
+            border-radius: 25px;
+            transition: width 0.5s ease;
+        }
+
+        .progress-text {
+            color: #7f6a5e;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        /* Availability Sections */
+        .availability-section, .booked-section {
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+        }
+
+        .availability-section {
+            background: #fef8e6;
+            border-left: 5px solid #f9d98e;
+        }
+
+        .booked-section {
+            background: #fff5f8;
+            border-left: 5px solid #ff9f6d;
+        }
+
+        /* Booking Form */
+        .booking-form {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .booking-form input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #f0e0e8;
+            border-radius: 25px;
+        }
+
+        .booking-form button:first-of-type {
+            background: #f791b8;
+        }
+
+        .booking-form button:first-of-type:hover {
+            background: #e4719e;
+        }
+
+        .booking-form button:last-of-type {
+            background: #ff9f6d;
+        }
+
+        .booking-form button:last-of-type:hover {
+            background: #ff7f4d;
+        }
+
+        /* Reservation Card */
+        .reservation-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .reservation-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .reservation-card h4 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+        }
+
+        .cancel-button {
+            background: #ff9f6d;
+            border-radius: 25px;
+            padding: 10px 20px;
+        }
+
+        .cancel-button:hover {
+            background:  #ff7f4d;
+            transform: translateY(-2px);
+        }
+
+        /* Hotel Images */
+        .hotel-images {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .hotel-images img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .hotel-images img:hover {
+            transform: scale(1.05);
+        }
+
+        .hotel-images > div {
+            position: relative;
+        }
+
+        .hotel-images button {
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(92, 64, 51, 0.7);
+            padding: 8px 16px;
+        }
+
+        .hotel-images button:hover {
+            background: #f791b8;
+        }
+    </style>
+</head>
+<body>
+    <div class="header-buttons">
+        <button onclick="toggleView('user')">User View</button>
+        <button onclick="showHostLogin()">Host Login</button>
+        <button onclick="showReservations()">View All Reservations</button>
+    </div>
+
+    <!-- User View -->
+    <div id="userView" class="view">
+        <h2>Search Hotels</h2>
+        <div class="search-container">
+            <input type="text" id="searchName" placeholder="Hotel Name">
+            <input type="text" id="searchLocation" placeholder="Location">
+            <input type="text" id="searchAmenities" placeholder="Amenities (comma-separated)">
+            <button onclick="searchHotels()">Search</button>
+        </div>
+        <div id="searchResults"></div>
+    </div>
+
+    <!-- Host Login Modal -->
+    <div id="hostLoginModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeHostLoginModal()">&times;</span>
+            <h2>Host Login</h2>
+            <div class="admin-form">
+                <input type="text" id="hostName" placeholder="Host Name" required>
+                <input type="email" id="hostEmail" placeholder="Email" required>
+                <input type="text" id="hostPhone" placeholder="Phone Number" required>
+                <button onclick="submitHostDetails()">Submit</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin View -->
+    <div id="adminView" class="view">
+        <h2>Host Details</h2>
+        <div id="hostDetails" class="admin-form">
+            <button onclick="viewHostDetails()">View My Details</button>
+        </div>
+
+        <h2>Add New Hotel</h2>
+        <div class="admin-form">
+            <input type="text" id="hotelName" placeholder="Hotel Name" required>
+            <input type="text" id="location" placeholder="Location" required>
+            <input type="text" id="amenities" placeholder="Amenities (comma-separated)">
+            <input type="text" id="contactInfo" placeholder="Contact Info">
+            <button onclick="addHotel()">Add Hotel</button>
+        </div>
+
+        <h2>Existing Hotels</h2>
+        <div id="hotelList"></div>
+    </div>
+
+    <!-- Room Details Modal -->
+    <div id="roomModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2 id="modalHotelName"></h2>
+            
+            <div class="room-availability-form">
+                <h3>Check Room Availability</h3>
+                <input type="date" id="checkInDate" required>
+                <input type="date" id="checkOutDate" required>
+                <button onclick="checkAvailability()">Check Availability</button>
+            </div>
+            
+            <div class="booking-form" style="display: none;" id="bookingForm">
+                <h3>Make a Reservation</h3>
+                <input type="text" id="guestName" placeholder="Guest Name" required>
+                <input type="number" id="numberOfPeople" placeholder="Number of People" min="1" required>
+                <p>Total Price: $<span id="totalPrice">0</span></p>
+                <button onclick="submitBooking()">Confirm Booking</button>
+                <button onclick="cancelBooking()">Cancel</button>
+            </div>
+            
+            <div id="roomsList"></div>
+        </div>
+    </div>
+
+    <!-- Reservations Modal -->
+    <div id="reservationsModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeReservationsModal()">&times;</span>
+            <h2>All Reservations</h2>
+            <div id="reservationsList"></div>
+        </div>
+    </div>
+
+    <script>
+        // Your existing JavaScript code remains unchanged
+        document.addEventListener('DOMContentLoaded', () => {
+            toggleView('user');
+            loadHotels();
+        });
+
+        let currentHostId = null;
+
+        function toggleView(view) {
+            if (view === 'admin' && !currentHostId) {
+                alert('Please login as a host first');
+                showHostLogin();
+                return;
+            }
+            document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+            document.getElementById(view + 'View').classList.add('active');
+            if (view === 'admin') {
+                loadHotels();
+            }
+        }
+
+        async function searchHotels() {
+            const name = document.getElementById('searchName').value;
+            const location = document.getElementById('searchLocation').value;
+            const amenities = document.getElementById('searchAmenities').value;
+
+            const params = new URLSearchParams();
+            if (name) params.append('name', name);
+            if (location) params.append('location', location);
+            if (amenities) params.append('amenities', amenities);
+
+            try {
+                const response = await fetch(`/hotels/search?${params}`);
+                const hotels = await response.json();
+                displaySearchResults(hotels);
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error searching hotels');
+            }
+        }
+
+        function displaySearchResults(hotels) {
+            const container = document.getElementById('searchResults');
+            container.innerHTML = '';
+            
+            hotels.forEach(hotel => {
+                const div = document.createElement('div');
+                div.className = 'hotel-card';
+                div.innerHTML = `
+                    <h3>${hotel.name}</h3>
+                    <p>Location: ${hotel.location}</p>
+                    <p>Amenities: ${hotel.amenities}</p>
+                    <p>Contact: ${hotel.contact_info}</p>
+                    <div id="hotel-images-${hotel.hotel_id}" class="hotel-images"></div>
+                    <button onclick="showRoomDetails(${hotel.hotel_id}, '${hotel.name}')">View Rooms</button>
+                `;
+                container.appendChild(div);
+                loadHotelImages(hotel.hotel_id, false);
+            });
+        }
+
+        function showRoomDetails(hotelId, hotelName) {
+            const modal = document.getElementById('roomModal');
+            document.getElementById('modalHotelName').textContent = hotelName;
+            modal.style.display = 'block';
+            
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('checkInDate').min = today;
+            document.getElementById('checkOutDate').min = today;
+            
+            modal.dataset.hotelId = hotelId;
+        }
+
+        function closeModal() {
+            document.getElementById('roomModal').style.display = 'none';
+            document.getElementById('roomsList').innerHTML = '';
+            document.getElementById('bookingForm').style.display = 'none';
+            document.getElementById('guestName').value = '';
+            document.getElementById('numberOfPeople').value = '';
+        }
+
+        async function checkAvailability() {
+            const hotelId = document.getElementById('roomModal').dataset.hotelId;
+            const checkIn = document.getElementById('checkInDate').value;
+            const checkOut = document.getElementById('checkOutDate').value;
+            
+            if (!checkIn || !checkOut) {
+                alert('Please select both check-in and check-out dates');
+                return;
+            }
+
+            if (new Date(checkIn) >= new Date(checkOut)) {
+                alert('Check-out date must be after check-in date');
+                return;
+            }
+
+            const roomsList = document.getElementById('roomsList');
+            roomsList.innerHTML = '<h3>Available Rooms:</h3>';
+
+            try {
+                const roomsResponse = await fetch(`/hotels/${hotelId}/rooms`);
+                if (!roomsResponse.ok) {
+                    throw new Error('Failed to fetch room details');
+                }
+                const rooms = await roomsResponse.json();
+                
+                for (const room of rooms) {
+                    const response = await fetch(`http://localhost:8001/check-availability?` + 
+                        new URLSearchParams({
+                            hotel_id: hotelId,
+                            room_type: room.room_type,
+                            check_in: checkIn,
+                            check_out: checkOut
+                        })
+                    );
+
+                    const result = await response.json();
+                    
+                    const roomDiv = document.createElement('div');
+                    roomDiv.className = 'room-card';
+                    roomDiv.innerHTML = `
+                        <h4>${room.room_type}</h4>
+                        <p>Price per night: $${room.price}</p>
+                        <p>Status: ${result.available ? 'Available' : 'Not Available'}</p>
+                        ${result.available ? `
+                            <button onclick="reserveRoom(${hotelId}, '${room.room_type}', '${checkIn}', '${checkOut}', ${room.price})">
+                                Reserve Room
+                            </button>
+                        ` : ''}
+                    `;
+                    roomsList.appendChild(roomDiv);
+                }
+            } catch (error) {
+                console.error('Error checking availability:', error);
+                roomsList.innerHTML = '<p>Error checking room availability</p>';
+            }
+        }
+
+        async function reserveRoom(hotelId, roomType, checkIn, checkOut, pricePerNight) {
+            const bookingForm = document.getElementById('bookingForm');
+            bookingForm.dataset.hotelId = hotelId;
+            bookingForm.dataset.roomType = roomType;
+            bookingForm.dataset.checkIn = checkIn;
+            bookingForm.dataset.checkOut = checkOut;
+            bookingForm.dataset.pricePerNight = pricePerNight;
+
+            const checkInDate = new Date(checkIn);
+            const checkOutDate = new Date(checkOut);
+            const days = (checkOutDate - checkInDate) / (1000 * 60 * 60 * 24);
+            const totalPrice = pricePerNight * days;
+            document.getElementById('totalPrice').textContent = totalPrice.toFixed(2);
+
+            bookingForm.style.display = 'block';
+            document.getElementById('roomsList').style.display = 'none';
+        }
+
+        async function submitBooking() {
+            const bookingForm = document.getElementById('bookingForm');
+            const guestName = document.getElementById('guestName').value;
+            const numberOfPeople = document.getElementById('numberOfPeople').value;
+
+            if (!guestName || !numberOfPeople) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            try {
+                const checkInDate = new Date(bookingForm.dataset.checkIn);
+                const checkOutDate = new Date(bookingForm.dataset.checkOut);
+                const days = (checkOutDate - checkInDate) / (1000 * 60 * 60 * 24);
+                const pricePerNight = parseFloat(bookingForm.dataset.pricePerNight);
+                const totalPrice = pricePerNight * days;
+
+                const bookingData = {
+                    hotel_id: parseInt(bookingForm.dataset.hotelId),
+                    name: guestName,
+                    price: totalPrice,
+                    people: parseInt(numberOfPeople),
+                    room_type: bookingForm.dataset.roomType,
+                    check_in_date: bookingForm.dataset.checkIn,
+                    check_out_date: bookingForm.dataset.checkOut
+                };
+
+                // Open payment window with booking details
+                const paymentUrl = `http://localhost:8003/payment?booking=${encodeURIComponent(JSON.stringify(bookingData))}`;
+                const paymentWindow = window.open(paymentUrl, 'PaymentWindow', 'width=600,height=700');
+
+                // Listen for payment completion message
+                window.addEventListener('message', async function(event) {
+                    if (event.origin === 'http://localhost:8003' && event.data.type === 'PAYMENT_COMPLETE') {
+                        paymentWindow.close();
+                        
+                        // Create the booking after successful payment
+                        const bookingResponse = await fetch('http://localhost:8002/bookings', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(bookingData)
+                        });
+
+                        if (!bookingResponse.ok) {
+                            const errorData = await bookingResponse.json();
+                            throw new Error(errorData.detail || 'Failed to create booking');
+                        }
+
+                        const result = await bookingResponse.json();
+                        alert(`Booking successful!\nBooking ID: ${result.booking_id}\nCheck-in: ${result.check_in_date}\nCheck-out: ${result.check_out_date}`);
+                        
+                        // Reset and close everything
+                        closeModal();
+                        await loadRoomDetails(bookingData.hotel_id);
+                    }
+                });
+
+            } catch (error) {
+                console.error('Error creating booking:', error);
+                alert(`Failed to create booking: ${error.message}`);
+            }
+        }
+
+        function cancelBooking() {
+            document.getElementById('bookingForm').style.display = 'none';
+            document.getElementById('roomsList').style.display = 'block';
+        }
+
+        window.onclick = function(event) {
+            const roomModal = document.getElementById('roomModal');
+            const reservationsModal = document.getElementById('reservationsModal');
+            if (event.target == roomModal) {
+                closeModal();
+            }
+            if (event.target == reservationsModal) {
+                closeReservationsModal();
+            }
+        }
+
+        async function addHotel() {
+            const hotelData = {
+                name: document.getElementById('hotelName').value,
+                location: document.getElementById('location').value,
+                amenities: document.getElementById('amenities').value,
+                contact_info: document.getElementById('contactInfo').value
+            };
+
+            try {
+                const response = await fetch('/hotels', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(hotelData)
+                });
+
+                if (response.ok) {
+                    alert('Hotel added successfully');
+                    loadHotels();
+                    document.getElementById('hotelName').value = '';
+                    document.getElementById('location').value = '';
+                    document.getElementById('amenities').value = '';
+                    document.getElementById('contactInfo').value = '';
+                } else {
+                    alert('Error adding hotel');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error adding hotel');
+            }
+        }
+
+        async function loadHotels() {
+            try {
+                const response = await fetch('/hotels/search');
+                const hotels = await response.json();
+                displayHotelList(hotels);
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error loading hotels');
+            }
+        }
+
+        function displayHotelList(hotels) {
+            const container = document.getElementById('hotelList');
+            container.innerHTML = '';
+            
+            hotels.forEach(hotel => {
+                const div = document.createElement('div');
+                div.className = 'hotel-card';
+                div.innerHTML = `
+                    <h3>${hotel.name}</h3>
+                    <p>Location: ${hotel.location}</p>
+                    <p>Amenities: ${hotel.amenities}</p>
+                    <p>Contact: ${hotel.contact_info}</p>
+                    <div id="hotel-images-${hotel.hotel_id}" class="hotel-images"></div>
+                    <button onclick="uploadHotelImage(${hotel.hotel_id})">Add Images</button>
+                    <button onclick="showUpdateForm(${hotel.hotel_id}, '${hotel.name}', '${hotel.location}', '${hotel.amenities}', '${hotel.contact_info}')">Update</button>
+                    <button onclick="deleteHotel(${hotel.hotel_id})">Delete</button>
+                    <button onclick="toggleRoomManagement(${hotel.hotel_id})">Manage Rooms</button>
+                    <div id="updateForm-${hotel.hotel_id}" style="display: none; margin-top: 10px;">
+                        <input type="text" id="updateName-${hotel.hotel_id}" placeholder="Hotel Name">
+                        <input type="text" id="updateLocation-${hotel.hotel_id}" placeholder="Location">
+                        <input type="text" id="updateAmenities-${hotel.hotel_id}" placeholder="Amenities">
+                        <input type="text" id="updateContact-${hotel.hotel_id}" placeholder="Contact Info">
+                        <button onclick="updateHotel(${hotel.hotel_id})">Save Changes</button>
+                        <button onclick="hideUpdateForm(${hotel.hotel_id})">Cancel</button>
+                    </div>
+                    <div id="roomManagement-${hotel.hotel_id}" class="room-management" style="display: none;">
+                        <h4>Room Management</h4>
+                        <div id="roomList-${hotel.hotel_id}"></div>
+                    </div>
+                `;
+                container.appendChild(div);
+                loadHotelImages(hotel.hotel_id, true);
+            });
+        }
+
+        function showUpdateForm(hotelId, name, location, amenities, contactInfo) {
+            const form = document.getElementById(`updateForm-${hotelId}`);
+            form.style.display = 'block';
+            
+            document.getElementById(`updateName-${hotelId}`).value = name;
+            document.getElementById(`updateLocation-${hotelId}`).value = location;
+            document.getElementById(`updateAmenities-${hotelId}`).value = amenities;
+            document.getElementById(`updateContact-${hotelId}`).value = contactInfo;
+        }
+
+        function hideUpdateForm(hotelId) {
+            document.getElementById(`updateForm-${hotelId}`).style.display = 'none';
+        }
+
+        async function updateHotel(hotelId) {
+            const hotelData = {
+                name: document.getElementById(`updateName-${hotelId}`).value,
+                location: document.getElementById(`updateLocation-${hotelId}`).value,
+                amenities: document.getElementById(`updateAmenities-${hotelId}`).value,
+                contact_info: document.getElementById(`updateContact-${hotelId}`).value
+            };
+
+            try {
+                const response = await fetch(`/hotels/${hotelId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(hotelData)
+                });
+
+                if (response.ok) {
+                    alert('Hotel updated successfully');
+                    loadHotels();
+                } else {
+                    alert('Error updating hotel');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error updating hotel');
+            }
+        }
+
+        async function deleteHotel(hotelId) {
+            if (!confirm('Are you sure you want to delete this hotel?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/hotels/${hotelId}`, {
+                    method: 'DELETE'
+                });
+
+                if (response.ok) {
+                    alert('Hotel deleted successfully');
+                    loadHotels();
+                } else {
+                    alert('Error deleting hotel');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error deleting hotel');
+            }
+        }
+
+        async function toggleRoomManagement(hotelId) {
+            const roomManagement = document.getElementById(`roomManagement-${hotelId}`);
+            if (roomManagement.style.display === 'none') {
+                roomManagement.style.display = 'block';
+                await loadRoomDetails(hotelId);
+            } else {
+                roomManagement.style.display = 'none';
+            }
+        }
+
+        async function loadRoomDetails(hotelId) {
+            try {
+                const response = await fetch(`/hotels/${hotelId}/rooms`);
+                if (!response.ok) {
+                    throw new Error('Failed to fetch rooms');
+                }
+                const rooms = await response.json();
+                
+                const roomList = document.getElementById(`roomList-${hotelId}`);
+                roomList.innerHTML = '<h4>Hotel Rooms</h4>';
+
+                rooms.forEach(room => {
+                    const roomDiv = document.createElement('div');
+                    roomDiv.className = 'room-details';
+                    roomDiv.innerHTML = `
+                        <h5>${room.room_type}</h5>
+                        <p>Base Price: $${room.price}</p>
+                        <p>Total Rooms: ${room.availability}</p>
+                        <button onclick="checkRoomAvailabilityRange(${hotelId}, '${room.room_type}')">
+                            Check 30-Day Availability
+                        </button>
+                        <div id="availability-${hotelId}-${room.room_type}" class="availability-ranges"></div>
+                    `;
+                    roomList.appendChild(roomDiv);
+                });
+
+            } catch (error) {
+                console.error('Error loading room details:', error);
+                alert('Error loading room details');
+            }
+        }
+
+        async function checkRoomAvailabilityRange(hotelId, roomType) {
+            try {
+                const availabilityDiv = document.getElementById(`availability-${hotelId}-${roomType}`);
+                availabilityDiv.innerHTML = '<p>Loading availability...</p>';
+
+                const encodedRoomType = encodeURIComponent(roomType);
+                console.log(`Checking availability for hotel ${hotelId}, room type: ${roomType}`);
+
+                const response = await fetch(`http://localhost:8001/room-availability/${hotelId}/${encodedRoomType}`);
+                console.log('Response status:', response.status);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Error response:', errorText);
+                    throw new Error(`Failed to fetch availability: ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log('Received data:', data);
+
+                const availabilityRanges = [];
+                const bookedRanges = [];
+                let currentAvailableRange = null;
+                let currentBookedRange = null;
+
+                Object.entries(data.availability).forEach(([date, info]) => {
+                    if (info.booked_rooms === 0) {
+                        if (!currentAvailableRange) {
+                            currentAvailableRange = { 
+                                start: date, 
+                                end: date,
+                                available: info.available,
+                                total: info.total_rooms
+                            };
+                        } else {
+                            currentAvailableRange.end = date;
+                        }
+                        if (currentBookedRange) {
+                            bookedRanges.push(currentBookedRange);
+                            currentBookedRange = null;
+                        }
+                    } else {
+                        if (!currentBookedRange) {
+                            currentBookedRange = {
+                                start: date,
+                                end: date,
+                                booked: info.booked_rooms,
+                                total: info.total_rooms
+                            };
+                        } else {
+                            currentBookedRange.end = date;
+                        }
+                        if (currentAvailableRange) {
+                            availabilityRanges.push(currentAvailableRange);
+                            currentAvailableRange = null;
+                        }
+                    }
+                });
+
+                if (currentAvailableRange) availabilityRanges.push(currentAvailableRange);
+                if (currentBookedRange) bookedRanges.push(currentBookedRange);
+
+                availabilityDiv.innerHTML = `
+                    <h5>${roomType} Availability (Total Rooms: ${data.total_rooms}):</h5>
+                    <div class="availability-section">
+                        <h6>Available Periods:</h6>
+                        ${availabilityRanges.length > 0 ? 
+                            availabilityRanges.map(range => `
+                                <div class="availability-calendar available">
+                                    <strong>${range.start === range.end ? 
+                                        formatDate(range.start) : 
+                                        `${formatDate(range.start)} to ${formatDate(range.end)}`}</strong>
+                                    <br>
+                                    Available Rooms: ${range.available} of ${range.total}
+                                </div>
+                            `).join('') : 
+                            '<p>No fully available periods in next 30 days</p>'
+                        }
+                    </div>
+                    <div class="booked-section">
+                        <h6>Partially or Fully Booked Periods:</h6>
+                        ${bookedRanges.length > 0 ? 
+                            bookedRanges.map(range => `
+                                <div class="availability-calendar booked">
+                                    <strong>${range.start === range.end ? 
+                                        formatDate(range.start) : 
+                                        `${formatDate(range.start)} to ${formatDate(range.end)}`}</strong>
+                                    <br>
+                                    Booked Rooms: ${range.booked} of ${range.total}
+                                    <br>
+                                    Available Rooms: ${range.total - range.booked} of ${range.total}
+                                </div>
+                            `).join('') : 
+                            '<p>No bookings in next 30 days</p>'
+                        }
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Error checking availability:', error);
+                availabilityDiv.innerHTML = `<p>Error checking availability: ${error.message}</p>`;
+            }
+        }
+
+        function formatDate(dateStr) {
+            return new Date(dateStr).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
+        async function showReservations() {
+            const modal = document.getElementById('reservationsModal');
+            modal.style.display = 'block';
+            await loadReservations();
+        }
+
+        function closeReservationsModal() {
+            const modal = document.getElementById('reservationsModal');
+            modal.style.display = 'none';
+        }
+
+        async function loadReservations() {
+            try {
+                const response = await fetch('http://localhost:8002/bookings');
+                if (!response.ok) {
+                    throw new Error('Failed to fetch reservations');
+                }
+                const reservations = await response.json();
+                displayReservations(reservations);
+            } catch (error) {
+                console.error('Error loading reservations:', error);
+                alert('Error loading reservations');
+            }
+        }
+
+        function displayReservations(reservations) {
+            const container = document.getElementById('reservationsList');
+            container.innerHTML = '';
+            
+            if (reservations.length === 0) {
+                container.innerHTML = '<p>No reservations found.</p>';
+                return;
+            }
+            
+            reservations.forEach(reservation => {
+                const div = document.createElement('div');
+                div.className = 'reservation-card';
+                div.innerHTML = `
+                    <h4>Booking #${reservation.id} - ${reservation.hotel_name}</h4>
+                    <div class="details">
+                        <p>Guest: ${reservation.name}</p>
+                        <p>Room Type: ${reservation.room_type}</p>
+                        <p>Check-in: ${formatDate(reservation.check_in_date)}</p>
+                        <p>Check-out: ${formatDate(reservation.check_out_date)}</p>
+                        <p>People: ${reservation.people}</p>
+                        <p>Price: $${reservation.price}</p>
+                    </div>
+                    <button class="cancel-button" onclick="cancelReservation(${reservation.id})">
+                        Cancel Reservation
+                    </button>
+                `;
+                container.appendChild(div);
+            });
+        }
+
+        async function cancelReservation(bookingId) {
+            if (!confirm('Are you sure you want to cancel this reservation?')) {
+                return;
+            }
+            
+            try {
+                const response = await fetch(`http://localhost:8002/bookings/${bookingId}/cancel`, {
+                    method: 'POST'
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to cancel reservation');
+                }
+                
+                alert('Reservation cancelled successfully');
+                await loadReservations();
+            } catch (error) {
+                console.error('Error cancelling reservation:', error);
+                alert('Error cancelling reservation');
+            }
+        }
+
+        async function uploadHotelImage(hotelId) {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'image/*';
+            input.multiple = true;
+            
+            input.onchange = async function() {
+                for (const file of this.files) {
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    
+                    try {
+                        const response = await fetch(`http://localhost:8003/hotels/${hotelId}/images`, {
+                            method: 'POST',
+                            body: formData
+                        });
+                        
+                        if (!response.ok) throw new Error('Upload failed');
+                        
+                        alert('Image uploaded successfully');
+                        await loadHotelImages(hotelId);
+                    } catch (error) {
+                        console.error('Error uploading image:', error);
+                        alert('Failed to upload image');
+                    }
+                }
+            };
+            
+            input.click();
+        }
+
+        async function loadHotelImages(hotelId, isAdminView = false) {
+            try {
+                console.log(`Fetching images for hotel ${hotelId}`);
+                const response = await fetch(`http://localhost:8003/hotels/${hotelId}/images`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const images = await response.json();
+                console.log(`Received ${images.length} images for hotel ${hotelId}`);
+                
+                const container = document.getElementById(`hotel-images-${hotelId}`);
+                if (!container) {
+                    console.error(`Container not found for hotel ${hotelId}`);
+                    return;
+                }
+                
+                container.innerHTML = '';
+                
+                if (images.length === 0) {
+                    container.innerHTML = '<p>No images available</p>';
+                    return;
+                }
+                
+                images.forEach(image => {
+                    const img = document.createElement('img');
+                    img.src = `http://localhost:8003/images/${image.id}`;
+                    img.alt = 'Hotel image';
+                    
+                    const div = document.createElement('div');
+                    div.appendChild(img);
+
+                    if (isAdminView) {
+                        const deleteBtn = document.createElement('button');
+                        deleteBtn.textContent = 'Delete';
+                        deleteBtn.onclick = () => deleteHotelImage(image.id, hotelId);
+                        div.appendChild(deleteBtn);
+                    }
+                    
+                    container.appendChild(div);
+                });
+            } catch (error) {
+                console.error('Error loading images:', error);
+                const container = document.getElementById(`hotel-images-${hotelId}`);
+                if (container) {
+                    container.innerHTML = '<p>Error loading images</p>';
+                }
+            }
+        }
+
+        async function deleteHotelImage(imageId, hotelId) {
+            if (!confirm('Are you sure you want to delete this image?')) return;
+            
+            try {
+                const response = await fetch(`http://localhost:8003/images/${imageId}`, {
+                    method: 'DELETE'
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Delete failed');
+                }
+                
+                await loadHotelImages(hotelId, true);
+                
+            } catch (error) {
+                console.error('Error deleting image:', error);
+                alert('Failed to delete image');
+            }
+        }
+
+        function showHostLogin() {
+            const modal = document.getElementById('hostLoginModal');
+            modal.style.display = 'block';
+        }
+
+        function closeHostLoginModal() {
+            document.getElementById('hostLoginModal').style.display = 'none';
+        }
+
+        async function submitHostDetails() {
+            const hostData = {
+                name: document.getElementById('hostName').value,
+                email: document.getElementById('hostEmail').value,
+                phone_number: document.getElementById('hostPhone').value
+            };
+
+            try {
+                const response = await fetch('http://localhost:5005/hosts', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(hostData)
+                });
+
+                if (response.ok) {
+                    const host = await response.json();
+                    currentHostId = host.id;
+                    alert('Host details submitted successfully');
+                    closeHostLoginModal();
+                    toggleView('admin');
+                } else {
+                    alert('Error submitting host details');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error submitting host details');
+            }
+        }
+
+        async function viewHostDetails() {
+            if (!currentHostId) {
+                alert('Please login as a host first');
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:5005/hosts/${currentHostId}`);
+                if (response.ok) {
+                    const host = await response.json();
+                    const hostDetailsDiv = document.getElementById('hostDetails');
+                    hostDetailsDiv.innerHTML = `
+                        <h3>Your Details</h3>
+                        <p>Name: ${host.name}</p>
+                        <p>Email: ${host.email}</p>
+                        <p>Phone: ${host.phone_number}</p>
+                        <button onclick="viewHostDetails()">Refresh Details</button>
+                    `;
+                } else {
+                    alert('Error fetching host details');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error fetching host details');
+            }
+        }
+    </script>
+</body>
+</html>

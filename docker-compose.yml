@@ -1,0 +1,120 @@
+services:
+  mysql-hotel:
+    image: mysql:latest
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: hotel_db
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./hotel-management-service/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - hotel-network
+
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: host_db
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - hotel-network
+
+  hotel-service:
+    build:
+      context: ./hotel-management-service
+      dockerfile: Dockerfile
+    depends_on:
+      - mysql-hotel
+    ports:
+      - "8000:8000"
+    environment:
+      - MYSQL_HOST=mysql-hotel
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=root
+      - MYSQL_DATABASE=hotel_db
+    networks:
+      - hotel-network
+
+  room-availability-service:
+    build:
+      context: ./room_availability_service
+      dockerfile: Dockerfile
+    depends_on:
+      - mysql-hotel
+    ports:
+      - "8001:8001"
+    environment:
+      - MYSQL_HOST=mysql-hotel
+      - MYSQL_USER=root
+      - MYSQL_PASSWORD=root
+      - MYSQL_DATABASE=hotel_db
+    networks:
+      - hotel-network
+
+  booking-service:
+    build: ./hotel-management-booking
+    ports:
+      - "8002:8002"
+    depends_on:
+      - mysql-hotel
+    environment:
+      - DB_HOST=mysql-hotel
+      - DB_USER=root
+      - DB_PASSWORD=root
+      - DB_NAME=hotel_db
+    volumes:
+      - ./hotel-management-booking:/app
+    networks:
+      - hotel-network
+
+  mongodb:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb-data:/data/db
+    networks:
+      - hotel-network
+
+  image-service:
+    build: ./payment-images
+    ports:
+      - "8003:8003"
+    depends_on:
+      - mongodb
+    environment:
+      - CORS_ORIGINS=http://localhost:8000,http://localhost:8002
+      - MONGO_URI=mongodb://mongodb:27017/hotel_images
+    volumes:
+      - ./payment-images:/app
+    networks:
+      - hotel-network
+
+  host-service:
+    build:
+      context: ./host_service
+      dockerfile: Dockerfile
+    depends_on:
+      - postgres
+    ports:
+      - "5005:5005"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/host_db
+    networks:
+      - hotel-network
+
+networks:
+  hotel-network:
+    driver: bridge
+
+volumes:
+  mysql-data:
+  mongodb-data:
+  postgres-data:
