@@ -1,6 +1,7 @@
 1. I have integrated with satviks host microservice. Our original application had direct access to the user view and admin view.
-Now, using their microservice, I have put that behind a host login, where you enter the details of the current host before making the changes. It is pretty rudimentary but does work fairly well.
-/hosts endpoint to put host details in postgresql database. /hosts/id to get current host details.
+Now, using their microservice, I have put that behind a host login, where you enter the details of the current host before making the changes. 
+/hosts endpoint to put host details in postgresql database.
+/hosts/id to get current host details.
 
 2. Loyalty points service. Integrated with smeras teams loyalty points service. It is called when doing payment. Also loyalty points displayed on homepage.
 Endpoints used:
