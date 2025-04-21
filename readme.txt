@@ -16,3 +16,16 @@ Once a booking is confirmed, hit this endpoint to add new points to the user's w
  To Show Current Wallet Balance:
 Endpoint: GET /wallet/{user_id}
 You can use this to show users how many points they have during checkout.
+
+
+Our workflow:
+When the payment page loads, it shows the available loyalty points
+User can enter points they want to use
+When points are applied:
+Points are deducted from the wallet
+Discount is calculated (100 points = $10)
+Final amount is updated
+After successful payment:
+Points are added based on the payment amount (10% of payment amount)
+Booking is created with the discounted price
+
